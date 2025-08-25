@@ -37,6 +37,12 @@ public class LoginService {
             throw new RuntimeException("Email já cadastrado: " + dto.getEmailEducacional());
         }
 
+        // Valida o domínio do email
+        String email = dto.getEmailEducacional();
+        if (!email.endsWith("@aluno.senai.br") && !email.endsWith("@docente.senai.br")) {
+            throw new IllegalArgumentException("Email inválido. Use apenas emails institucionais (@aluno.senai.br ou @docente.senai.br)");
+        }
+
         // Valida o cargo
         if (dto.getCargoUsuario() == null) {
             throw new IllegalArgumentException("Cargo do usuário é obrigatório");

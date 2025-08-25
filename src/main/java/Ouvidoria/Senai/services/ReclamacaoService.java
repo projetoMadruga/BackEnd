@@ -3,6 +3,8 @@ package Ouvidoria.Senai.services;
 import Ouvidoria.Senai.dtos.ReclamacaoDTO;
 import Ouvidoria.Senai.entities.Reclamacao;
 import Ouvidoria.Senai.entities.Login;
+import Ouvidoria.Senai.entities.StatusReclamacao;
+import Ouvidoria.Senai.entities.TipoReclamacao;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.ReclamacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,8 @@ public class ReclamacaoService {
         reclamacao.setLocal(dto.getLocal());
         reclamacao.setDescricaoDetalhada(dto.getDescricaoDetalhada());
         reclamacao.setUsuario(usuarioLogado);
+        reclamacao.setStatus(StatusReclamacao.PENDENTE); // Status inicial é sempre pendente
+        reclamacao.setTipoReclamacao(dto.getTipoReclamacao()); // Define o tipo de reclamação
 
         reclamacao = reclamacaoRepository.save(reclamacao);
         return new ReclamacaoDTO(reclamacao);
@@ -58,12 +62,19 @@ public class ReclamacaoService {
 
         boolean isAdmin = usuarioLogado.getAuthorities().stream()
                 .anyMatch(role -> role.getAuthority().equals("ADMIN"));
+        boolean isManutencao = usuarioLogado.getAuthorities().stream()
+                .anyMatch(role -> role.getAuthority().equals("MANUTENCAO"));
 
         if (isAdmin) {
-            // Usa a consulta otimizada com JOIN FETCH para todas as reclamações
+            // Admin vê todas as reclamações
             reclamacoes = reclamacaoRepository.findAllWithUsuario();
+        } else if (isManutencao) {
+            // Manutenção vê apenas reclamações do tipo MANUTENCAO
+            reclamacoes = reclamacaoRepository.findAllWithUsuario().stream()
+                .filter(r -> r.getTipoReclamacao() == TipoReclamacao.MANUTENCAO)
+                .collect(Collectors.toList());
         } else {
-            // Usa a consulta otimizada com JOIN FETCH para reclamações do usuário
+            // Usuários comuns veem apenas suas próprias reclamações
             reclamacoes = reclamacaoRepository.findByUsuarioWithDetails(usuarioLogado);
         }
 
@@ -83,39 +94,58 @@ public class ReclamacaoService {
         boolean isOwner = reclamacaoExistente.getUsuario().getId().equals(usuarioLogado.getId());
         boolean isAdmin = usuarioLogado.getAuthorities().stream()
                 .anyMatch(role -> role.getAuthority().equals("ADMIN"));
+        boolean isManutencao = usuarioLogado.getAuthorities().stream()
+                .anyMatch(role -> role.getAuthority().equals("MANUTENCAO"));
 
-        if (!isOwner && !isAdmin) {
-            throw new SecurityException("Acesso negado. Você não tem permissão para atualizar este Reclamacao.");
+        // Verifica se é uma reclamação de manutenção e o usuário é da manutenção
+        boolean isManutencaoReclamacao = reclamacaoExistente.getTipoReclamacao() == TipoReclamacao.MANUTENCAO && isManutencao;
+
+        if (!isOwner && !isAdmin && !isManutencaoReclamacao) {
+            throw new SecurityException("Acesso negado. Você não tem permissão para atualizar esta Reclamação.");
         }
 
-        // Atualiza os campos
-        reclamacaoExistente.setDataHora(dto.getDataHora());
-        reclamacaoExistente.setLocal(dto.getLocal());
-        reclamacaoExistente.setDescricaoDetalhada(dto.getDescricaoDetalhada());
+        // Se for o proprietário ou admin, pode atualizar todos os campos
+        if (isOwner || isAdmin) {
+            reclamacaoExistente.setDataHora(dto.getDataHora());
+            reclamacaoExistente.setLocal(dto.getLocal());
+            reclamacaoExistente.setDescricaoDetalhada(dto.getDescricaoDetalhada());
+            reclamacaoExistente.setTipoReclamacao(dto.getTipoReclamacao());
+        }
+        
+        // Se for admin ou manutenção, pode atualizar status e observação
+        if (isAdmin || isManutencaoReclamacao) {
+            reclamacaoExistente.setStatus(dto.getStatus());
+            reclamacaoExistente.setObservacao(dto.getObservacao());
+        }
 
         // Salva as alterações
-        Reclamacao ReclamacaoAtualizado = reclamacaoRepository.save(reclamacaoExistente);
-        return new ReclamacaoDTO(ReclamacaoAtualizado);
+        Reclamacao reclamacaoAtualizada = reclamacaoRepository.save(reclamacaoExistente);
+        return new ReclamacaoDTO(reclamacaoAtualizada);
     }
 
     public void deletarReclamacao(Long id) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // Busca o Reclamacao existente
-        Reclamacao Reclamacao = reclamacaoRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Reclamacao não encontrado. ID: " + id));
-
-        // Verifica permissões
-        boolean isOwner = Reclamacao.getUsuario().getId().equals(usuarioLogado.getId());
-        boolean isAdmin = usuarioLogado.getAuthorities().stream()
-                .anyMatch(role -> role.getAuthority().equals("ADMIN"));
-
-        if (!isOwner && !isAdmin) {
-            throw new SecurityException("Acesso negado. Você não tem permissão para deletar este Reclamacao.");
+        // Busca a reclamação existente
+        Reclamacao reclamacaoExistente = reclamacaoRepository.findByIdWithUsuario(id);
+        if (reclamacaoExistente == null) {
+            throw new ResourceNotFoundException("Reclamação não encontrada. ID: " + id);
         }
 
-        // Remove o Reclamacao do banco de dados
-        reclamacaoRepository.delete(Reclamacao);
+        // Verifica permissões
+        boolean isOwner = reclamacaoExistente.getUsuario().getId().equals(usuarioLogado.getId());
+        boolean isAdmin = usuarioLogado.getAuthorities().stream()
+                .anyMatch(role -> role.getAuthority().equals("ADMIN"));
+        boolean isManutencao = usuarioLogado.getAuthorities().stream()
+                .anyMatch(role -> role.getAuthority().equals("MANUTENCAO"));
+        boolean isManutencaoReclamacao = reclamacaoExistente.getTipoReclamacao() == TipoReclamacao.MANUTENCAO && isManutencao;
+
+        if (!isOwner && !isAdmin && !isManutencaoReclamacao) {
+            throw new SecurityException("Acesso negado. Você não tem permissão para deletar esta reclamação.");
+        }
+
+        // Deleta a reclamação
+        reclamacaoRepository.delete(reclamacaoExistente);
     }
 
 

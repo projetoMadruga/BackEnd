@@ -75,6 +75,13 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/elogios/**").hasAnyAuthority("ALUNO", "FUNCIONARIO")
                         .requestMatchers(HttpMethod.POST, "/reclamacoes/**").hasAnyAuthority("ALUNO", "FUNCIONARIO")
                         .requestMatchers(HttpMethod.POST, "/sugestoes/**").hasAnyAuthority("ALUNO", "FUNCIONARIO")
+                        // Permissões específicas para manutenção
+                        .requestMatchers(HttpMethod.PUT, "/reclamacoes/**").hasAnyAuthority("ADMIN", "MANUTENCAO", "ALUNO", "FUNCIONARIO")
+                        .requestMatchers(HttpMethod.GET, "/reclamacoes/**").authenticated()
+                        // Permissões para admin
+                        .requestMatchers(HttpMethod.GET, "/denuncias/**").hasAnyAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/elogios/**").hasAnyAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/sugestoes/**").hasAnyAuthority("ADMIN")
                         // Qualquer outra requisição precisa de autenticação
                         .anyRequest().authenticated()
                 )
