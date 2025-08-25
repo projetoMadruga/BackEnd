@@ -1,7 +1,6 @@
 package Ouvidoria.Senai.controllers;
 
 import Ouvidoria.Senai.dtos.SugestaoDTO;
-import Ouvidoria.Senai.dtos.SugestaoDTO;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.services.SugestaoService;
 import jakarta.validation.Valid;
@@ -9,9 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,14 +20,9 @@ public class SugestaoController {
     private SugestaoService sugestaoService;
 
     @PostMapping
-    public ResponseEntity<SugestaoDTO> criarSugestao(@RequestPart("sugestao") @Valid SugestaoDTO sugestaoDTO,
-                                                     @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
-        try {
-            SugestaoDTO resposta = sugestaoService.salvarSugestao(sugestaoDTO, anexo);
-            return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<SugestaoDTO> criarSugestao(@RequestBody @Valid SugestaoDTO sugestaoDTO) {
+        SugestaoDTO resposta = sugestaoService.salvarSugestao(sugestaoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @GetMapping
@@ -52,23 +44,20 @@ public class SugestaoController {
         // Nota: Se você ainda quisesse pegar um RuntimeException genérico, ele viria por último.
     }
     @PutMapping("/{id}")
-    public ResponseEntity<SugestaoDTO> atualizarElogio(@PathVariable Long id,
-                                                     @RequestPart("elogio") SugestaoDTO dto,
-                                                     @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
+    public ResponseEntity<SugestaoDTO> atualizarSugestao(@PathVariable Long id,
+                                                     @RequestBody SugestaoDTO dto) {
         try {
-            SugestaoDTO resposta = sugestaoService.atualizarSugestao(id, dto, anexo);
+            SugestaoDTO resposta = sugestaoService.atualizarSugestao(id, dto);
             return ResponseEntity.ok(resposta);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarElogio(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarSugestao(@PathVariable Long id) {
         try {
             sugestaoService.deletarSugestao(id);
             return ResponseEntity.noContent().build();

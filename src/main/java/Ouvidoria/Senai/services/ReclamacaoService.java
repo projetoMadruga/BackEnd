@@ -1,54 +1,30 @@
 package Ouvidoria.Senai.services;
 
 import Ouvidoria.Senai.dtos.ReclamacaoDTO;
-import Ouvidoria.Senai.dtos.ReclamacaoDTO;
 import Ouvidoria.Senai.entities.Reclamacao;
 import Ouvidoria.Senai.entities.Login;
-import Ouvidoria.Senai.entities.Reclamacao;
-import Ouvidoria.Senai.exceptions.ResourceNotFoundException; // 1. Importar nossa exceção personalizada
+import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.ReclamacaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
 public class ReclamacaoService {
 
-    private static final String UPLOAD_DIR = "uploads/";
-
     @Autowired
     private ReclamacaoRepository reclamacaoRepository;
 
-    // 2. MÉTODO RENOMEADO CORRETAMENTE
-    public ReclamacaoDTO salvarReclamacao(ReclamacaoDTO dto, MultipartFile anexo) throws IOException {
+    public ReclamacaoDTO salvarReclamacao(ReclamacaoDTO dto) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        String caminhoAnexo = null;
-        if (anexo != null && !anexo.isEmpty()) {
-            String nomeArquivo = UUID.randomUUID() + "_" + anexo.getOriginalFilename();
-            Path diretorio = Paths.get("uploads/");
-            if (!Files.exists(diretorio)) {
-                Files.createDirectories(diretorio);
-            }
-            Path caminhoArquivo = diretorio.resolve(nomeArquivo);
-            anexo.transferTo(caminhoArquivo.toFile());
-            caminhoAnexo = caminhoArquivo.toAbsolutePath().toString();
-        }
 
         Reclamacao reclamacao = new Reclamacao();
         reclamacao.setDataHora(dto.getDataHora());
         reclamacao.setLocal(dto.getLocal());
         reclamacao.setDescricaoDetalhada(dto.getDescricaoDetalhada());
-        reclamacao.setCaminhoAnexo(caminhoAnexo);
         reclamacao.setUsuario(usuarioLogado);
 
         reclamacao = reclamacaoRepository.save(reclamacao);
@@ -94,7 +70,7 @@ public class ReclamacaoService {
         return reclamacoes.stream().map(ReclamacaoDTO::new).collect(Collectors.toList());
     }
 
-    public ReclamacaoDTO atualizarReclamacao(Long id, ReclamacaoDTO dto, MultipartFile anexo) throws IOException {
+    public ReclamacaoDTO atualizarReclamacao(Long id, ReclamacaoDTO dto) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         // Busca a reclamação existente usando JOIN FETCH
@@ -117,24 +93,6 @@ public class ReclamacaoService {
         reclamacaoExistente.setLocal(dto.getLocal());
         reclamacaoExistente.setDescricaoDetalhada(dto.getDescricaoDetalhada());
 
-        // Processa novo anexo se fornecido
-        if (anexo != null && !anexo.isEmpty()) {
-            // Remove o anexo anterior se existir
-            if (reclamacaoExistente.getCaminhoAnexo() != null) {
-                try {
-                    Path caminhoAnterior = Paths.get(reclamacaoExistente.getCaminhoAnexo());
-                    Files.deleteIfExists(caminhoAnterior);
-                } catch (IOException e) {
-                    // Log do erro, mas não interrompe o processo
-                    System.err.println("Erro ao remover anexo anterior: " + e.getMessage());
-                }
-            }
-
-            // Salva o novo anexo
-            String novoAnexo = salvarAnexo(anexo);
-            reclamacaoExistente.setCaminhoAnexo(novoAnexo);
-        }
-
         // Salva as alterações
         Reclamacao ReclamacaoAtualizado = reclamacaoRepository.save(reclamacaoExistente);
         return new ReclamacaoDTO(ReclamacaoAtualizado);
@@ -156,41 +114,9 @@ public class ReclamacaoService {
             throw new SecurityException("Acesso negado. Você não tem permissão para deletar este Reclamacao.");
         }
 
-        // Remove o anexo se existir
-        if (Reclamacao.getCaminhoAnexo() != null) {
-            try {
-                Path caminhoAnexo = Paths.get(Reclamacao.getCaminhoAnexo());
-                Files.deleteIfExists(caminhoAnexo);
-            } catch (IOException e) {
-                // Log do erro, mas não interrompe o processo de exclusão
-                System.err.println("Erro ao remover anexo: " + e.getMessage());
-            }
-        }
-
         // Remove o Reclamacao do banco de dados
         reclamacaoRepository.delete(Reclamacao);
     }
 
-    private String salvarAnexo(MultipartFile anexo) throws IOException {
-        // Cria o diretório se não existir
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
 
-        // Gera um nome único para o arquivo
-        String nomeOriginal = anexo.getOriginalFilename();
-        String extensao = "";
-        if (nomeOriginal != null && nomeOriginal.contains(".")) {
-            extensao = nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
-        }
-
-        String nomeArquivo = System.currentTimeMillis() + "_" + nomeOriginal;
-        Path caminhoCompleto = uploadPath.resolve(nomeArquivo);
-
-        // Salva o arquivo
-        Files.copy(anexo.getInputStream(), caminhoCompleto);
-
-        return caminhoCompleto.toString();
-    }
 }

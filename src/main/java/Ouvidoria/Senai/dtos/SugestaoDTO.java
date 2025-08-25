@@ -1,7 +1,6 @@
 package Ouvidoria.Senai.dtos;
 
 import Ouvidoria.Senai.entities.Sugestao;
-import org.springframework.web.multipart.MultipartFile;
 
 public class SugestaoDTO {
 

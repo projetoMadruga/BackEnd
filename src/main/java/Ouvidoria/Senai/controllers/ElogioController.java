@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -21,14 +19,9 @@ public class ElogioController {
 	private ElogioService elogioService;
 
 	@PostMapping
-	public ResponseEntity<ElogioDTO> criarElogio(@RequestPart("elogio") ElogioDTO dto,
-												 @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
-		try {
-			ElogioDTO resposta = elogioService.salvarElogio(dto, anexo);
-			return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
-		} catch (IOException e) {
-			return ResponseEntity.badRequest().build();
-		}
+	public ResponseEntity<ElogioDTO> criarElogio(@RequestBody ElogioDTO dto) {
+		ElogioDTO resposta = elogioService.salvarElogio(dto);
+		return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
 	}
 
 	@GetMapping
@@ -51,17 +44,14 @@ public class ElogioController {
 
 	@PutMapping("/{id}")
 	public ResponseEntity<ElogioDTO> atualizarElogio(@PathVariable Long id,
-													 @RequestPart("elogio") ElogioDTO dto,
-													 @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
+											 @RequestBody ElogioDTO dto) {
 		try {
-			ElogioDTO resposta = elogioService.atualizarElogio(id, dto, anexo);
+			ElogioDTO resposta = elogioService.atualizarElogio(id, dto);
 			return ResponseEntity.ok(resposta);
 		} catch (ResourceNotFoundException e) {
 			return ResponseEntity.notFound().build();
 		} catch (SecurityException e) {
 			return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-		} catch (IOException e) {
-			return ResponseEntity.badRequest().build();
 		}
 	}
 

@@ -1,8 +1,6 @@
 package Ouvidoria.Senai.services;
 
 import Ouvidoria.Senai.dtos.DenunciaDTO;
-import Ouvidoria.Senai.dtos.DenunciaDTO;
-import Ouvidoria.Senai.entities.Denuncia;
 import Ouvidoria.Senai.entities.Denuncia;
 import Ouvidoria.Senai.entities.Login;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
@@ -10,55 +8,32 @@ import Ouvidoria.Senai.repositories.DenunciaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
-@Service // A correção principal para o erro de @Autowired
+@Service
 public class DenunciaService {
 
-    private static final String UPLOAD_DIR = "uploads/";
-
     @Autowired
-    private DenunciaRepository denunciaRepository; // Corrigido para "denunciaRepository" (camelCase)
+    private DenunciaRepository denunciaRepository;
 
-    // Método corrigido para salvar Denúncia, não Denuncia
-    public DenunciaDTO salvarDenuncia(DenunciaDTO dto, MultipartFile anexo) throws IOException {
-        // 1. Pega o usuário logado do contexto de segurança
+    public DenunciaDTO salvarDenuncia(DenunciaDTO dto) {
+        // Pega o usuário logado do contexto de segurança
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-        // 2. Lógica de upload de arquivo (sem alterações)
-        String caminhoAnexo = null;
-        if (anexo != null && !anexo.isEmpty()) {
-            String nomeArquivo = UUID.randomUUID() + "_" + anexo.getOriginalFilename();
-            Path diretorio = Paths.get(UPLOAD_DIR);
-            if (!Files.exists(diretorio)) {
-                Files.createDirectories(diretorio);
-            }
-            Path caminhoArquivo = diretorio.resolve(nomeArquivo);
-            anexo.transferTo(caminhoArquivo.toFile());
-            caminhoAnexo = caminhoArquivo.toAbsolutePath().toString();
-        }
-
-        // 3. Cria a entidade Denuncia corretamente
+        // Cria a entidade Denuncia
         Denuncia denuncia = new Denuncia();
         denuncia.setLocal(dto.getLocal());
         denuncia.setDataHora(dto.getDataHora());
         denuncia.setDescricaoDetalhada(dto.getDescricaoDetalhada());
-        denuncia.setCaminhoAnexo(caminhoAnexo);
         denuncia.setUsuario(usuarioLogado); // Associa a denúncia ao usuário logado
 
-        // 4. Salva no banco
+        // Salva no banco
         Denuncia denunciaSalva = denunciaRepository.save(denuncia);
 
-        // 5. Retorna um DTO preenchido com os dados da denúncia salva (incluindo o ID)
+        // Retorna um DTO preenchido com os dados da denúncia salva (incluindo o ID)
         return new DenunciaDTO(denunciaSalva);
     }
 
@@ -99,7 +74,7 @@ public class DenunciaService {
 
         return denuncias.stream().map(DenunciaDTO::new).collect(Collectors.toList());
     }
-    public DenunciaDTO atualizarDenuncia(Long id, DenunciaDTO dto, MultipartFile anexo) throws IOException {
+    public DenunciaDTO atualizarDenuncia(Long id, DenunciaDTO dto) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         // Busca a denúncia existente usando JOIN FETCH
@@ -122,24 +97,6 @@ public class DenunciaService {
         denunciaExistente.setLocal(dto.getLocal());
         denunciaExistente.setDescricaoDetalhada(dto.getDescricaoDetalhada());
 
-        // Processa novo anexo se fornecido
-        if (anexo != null && !anexo.isEmpty()) {
-            // Remove o anexo anterior se existir
-            if (denunciaExistente.getCaminhoAnexo() != null) {
-                try {
-                    Path caminhoAnterior = Paths.get(denunciaExistente.getCaminhoAnexo());
-                    Files.deleteIfExists(caminhoAnterior);
-                } catch (IOException e) {
-                    // Log do erro, mas não interrompe o processo
-                    System.err.println("Erro ao remover anexo anterior: " + e.getMessage());
-                }
-            }
-
-            // Salva o novo anexo
-            String novoAnexo = salvarAnexo(anexo);
-            denunciaExistente.setCaminhoAnexo(novoAnexo);
-        }
-
         // Salva as alterações
         Denuncia denunciaAtualizado = denunciaRepository.save(denunciaExistente);
         return new DenunciaDTO(denunciaAtualizado);
@@ -161,41 +118,9 @@ public class DenunciaService {
             throw new SecurityException("Acesso negado. Você não tem permissão para deletar este denuncia.");
         }
 
-        // Remove o anexo se existir
-        if (denuncia.getCaminhoAnexo() != null) {
-            try {
-                Path caminhoAnexo = Paths.get(denuncia.getCaminhoAnexo());
-                Files.deleteIfExists(caminhoAnexo);
-            } catch (IOException e) {
-                // Log do erro, mas não interrompe o processo de exclusão
-                System.err.println("Erro ao remover anexo: " + e.getMessage());
-            }
-        }
-
         // Remove o denuncia do banco de dados
         denunciaRepository.delete(denuncia);
     }
 
-    private String salvarAnexo(MultipartFile anexo) throws IOException {
-        // Cria o diretório se não existir
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
-        }
 
-        // Gera um nome único para o arquivo
-        String nomeOriginal = anexo.getOriginalFilename();
-        String extensao = "";
-        if (nomeOriginal != null && nomeOriginal.contains(".")) {
-            extensao = nomeOriginal.substring(nomeOriginal.lastIndexOf("."));
-        }
-
-        String nomeArquivo = System.currentTimeMillis() + "_" + nomeOriginal;
-        Path caminhoCompleto = uploadPath.resolve(nomeArquivo);
-
-        // Salva o arquivo
-        Files.copy(anexo.getInputStream(), caminhoCompleto);
-
-        return caminhoCompleto.toString();
-    }
 }

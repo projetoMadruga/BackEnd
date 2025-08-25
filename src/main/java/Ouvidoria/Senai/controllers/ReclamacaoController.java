@@ -1,17 +1,14 @@
 package Ouvidoria.Senai.controllers;
 
 import Ouvidoria.Senai.dtos.ReclamacaoDTO;
-import Ouvidoria.Senai.dtos.ReclamacaoDTO; // 1. DTO correto
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
-import Ouvidoria.Senai.services.ReclamacaoService; // 2. Serviço correto
+import Ouvidoria.Senai.services.ReclamacaoService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -23,14 +20,9 @@ public class ReclamacaoController {
     private ReclamacaoService reclamacaoService; // 3. Injeção corrigida
 
     @PostMapping
-    public ResponseEntity<ReclamacaoDTO> criarReclamacao(@RequestPart("reclamacao") @Valid ReclamacaoDTO reclamacaoDTO, // 4. Parâmetros corrigidos
-                                                         @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
-        try {
-            ReclamacaoDTO resposta = reclamacaoService.salvarReclamacao(reclamacaoDTO, anexo); // 5. Chamada de método corrigida
-            return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<ReclamacaoDTO> criarReclamacao(@RequestBody @Valid ReclamacaoDTO reclamacaoDTO) {
+        ReclamacaoDTO resposta = reclamacaoService.salvarReclamacao(reclamacaoDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @GetMapping
@@ -51,23 +43,20 @@ public class ReclamacaoController {
         }
     }
     @PutMapping("/{id}")
-    public ResponseEntity<ReclamacaoDTO> atualizarElogio(@PathVariable Long id,
-                                                     @RequestPart("elogio") ReclamacaoDTO dto,
-                                                     @RequestPart(value = "anexo", required = false) MultipartFile anexo) {
+    public ResponseEntity<ReclamacaoDTO> atualizarReclamacao(@PathVariable Long id,
+                                                     @RequestBody ReclamacaoDTO dto) {
         try {
-            ReclamacaoDTO resposta = reclamacaoService.atualizarReclamacao(id, dto, anexo);
+            ReclamacaoDTO resposta = reclamacaoService.atualizarReclamacao(id, dto);
             return ResponseEntity.ok(resposta);
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         } catch (SecurityException e) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-        } catch (IOException e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletarElogio(@PathVariable Long id) {
+    public ResponseEntity<Void> deletarReclamacao(@PathVariable Long id) {
         try {
             reclamacaoService.deletarReclamacao(id);
             return ResponseEntity.noContent().build();

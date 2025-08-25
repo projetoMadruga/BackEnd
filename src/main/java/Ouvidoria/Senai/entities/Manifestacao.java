@@ -20,7 +20,7 @@ public abstract class Manifestacao {
     @NotBlank(message = "A descrição detalhada é obrigatória.")
     private String descricaoDetalhada;
 
-    private String caminhoAnexo;
+     private String caminhoAnexo;
 
     // Relacionamento com o usuário (Login)
     @ManyToOne(fetch = FetchType.EAGER)
