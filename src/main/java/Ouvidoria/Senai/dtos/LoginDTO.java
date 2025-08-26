@@ -11,11 +11,11 @@ public class LoginDTO {
     
     @NotBlank(message = "O email é obrigatório")
     @Email(message = "Formato de email inválido")
-    // Validação de domínio temporariamente removida para resolver problemas de compilação
+
     private String emailEducacional;
     
     @NotBlank(message = "A senha é obrigatória")
-    // Validação de força de senha temporariamente removida para resolver problemas de compilação
+
     private String senha;
     
     private CargoUsuario cargoUsuario;
