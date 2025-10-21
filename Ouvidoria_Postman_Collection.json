@@ -1,0 +1,898 @@
+{
+  "info": {
+    "name": "Ouvidoria SENAI API",
+    "description": "Coleção completa de testes para a API da Ouvidoria SENAI",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://ouvidoria-senai-e9brd8b7gbg2a3f6.brazilsouth-01.azurewebsites.net",
+      "type": "string"
+    },
+    {
+      "key": "localUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminDefaultPassword",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "adminPasswordChile",
+      "value": "Senai@Chile115",
+      "type": "string"
+    },
+    {
+      "key": "adminPasswordVieira",
+      "value": "Senai@Vieira115",
+      "type": "string"
+    },
+    {
+      "key": "adminPasswordPino",
+      "value": "Senai@Pino115",
+      "type": "string"
+    },
+    {
+      "key": "tokenChile",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshTokenChile",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenVieira",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshTokenVieira",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "tokenPino",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshTokenPino",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Cadastrar Usuário",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"usuario@aluno.senai.br\",\n  \"senha\": \"senha123456\",\n  \"cargo\": \"ALUNO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/cadastrar",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "cadastrar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Autenticar Usuário",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('token', responseJson.token);",
+                  "    pm.collectionVariables.set('refreshToken', responseJson.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"usuario@aluno.senai.br\",\n  \"senha\": \"senha123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/autenticar",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "autenticar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('token', responseJson.token);",
+                  "    pm.collectionVariables.set('refreshToken', responseJson.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/refresh-token",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "refresh-token"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Recuperar Senha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"usuario@aluno.senai.br\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/recuperar-senha",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "recuperar-senha"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Redefinir Senha",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"token-de-recuperacao\",\n  \"novaSenha\": \"novaSenha123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/redefinir-senha",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "redefinir-senha"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Solicitar Recuperação de Senha (API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@aluno.senai.br\"\n}"
+            },
+            "url": {
+              "raw": "{{localUrl}}/api/password/forgot",
+              "host": [
+                "{{localUrl}}"
+              ],
+              "path": [
+                "api",
+                "password",
+                "forgot"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Redefinir Senha com Token (API)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"COLE_O_TOKEN_RECEBIDO_NO_EMAIL_AQUI\",\n  \"newPassword\": \"sua-nova-senha\"\n}"
+            },
+            "url": {
+              "raw": "{{localUrl}}/api/password/reset",
+              "host": [
+                "{{localUrl}}"
+              ],
+              "path": [
+                "api",
+                "password",
+                "reset"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Denúncias",
+      "item": [
+        {
+          "name": "Criar Denúncia",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"local\": \"Laboratório de Informática\",\n  \"descricaoDetalhada\": \"Computadores com problemas de hardware e software desatualizado\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/denuncias",
+              "host": ["{{baseUrl}}"],
+              "path": ["denuncias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Denúncias (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/denuncias",
+              "host": ["{{baseUrl}}"],
+              "path": ["denuncias"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Denúncia por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/denuncias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["denuncias", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Denúncia",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"local\": \"Laboratório de Informática - Sala 101\",\n  \"descricaoDetalhada\": \"Computadores com problemas críticos de hardware\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/denuncias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["denuncias", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Denúncia",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/denuncias/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["denuncias", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Reclamações",
+      "item": [
+        {
+          "name": "Criar Reclamação",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"local\": \"Cantina\",\n  \"descricaoDetalhada\": \"Fila muito longa e poucos funcionários\",\n  \"tipoReclamacao\": \"MANUTENCAO\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Reclamações",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Reclamações por Tipo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes?tipo=MANUTENCAO",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes"],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "MANUTENCAO"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Reclamação por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Reclamação",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assunto\": \"Problema na Cantina - Urgente\",\n  \"descricaoDetalhada\": \"Fila muito longa, poucos funcionários e demora excessiva\",\n  \"tipoReclamacao\": \"INFRAESTRUTURA\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Status da Reclamação (Admin/Manutenção)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes/1/status?status=EM_ANDAMENTO&observacao=Iniciando análise do problema",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes", "1", "status"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "EM_ANDAMENTO"
+                },
+                {
+                  "key": "observacao",
+                  "value": "Iniciando análise do problema"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Reclamação",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reclamacoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["reclamacoes", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Elogios",
+      "item": [
+        {
+          "name": "Criar Elogio",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"local\": \"Secretaria\",\n  \"descricaoDetalhada\": \"A equipe da secretaria foi muito atenciosa e eficiente\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/elogios",
+              "host": ["{{baseUrl}}"],
+              "path": ["elogios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Elogios (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/elogios",
+              "host": ["{{baseUrl}}"],
+              "path": ["elogios"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Elogio por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/elogios/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["elogios", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Elogio",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assunto\": \"Excelente atendimento - Secretaria\",\n  \"descricaoDetalhada\": \"A equipe da secretaria foi extremamente atenciosa, eficiente e prestativa\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/elogios/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["elogios", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Elogio",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/elogios/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["elogios", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Sugestões",
+      "item": [
+        {
+          "name": "Criar Sugestão",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assunto\": \"Melhoria no sistema de biblioteca\",\n  \"descricaoDetalhada\": \"Implementar sistema de reserva online de livros\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sugestoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["sugestoes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Sugestões (Admin)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sugestoes",
+              "host": ["{{baseUrl}}"],
+              "path": ["sugestoes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Sugestão por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sugestoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["sugestoes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Sugestão",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"assunto\": \"Melhoria no sistema de biblioteca - Urgente\",\n  \"descricaoDetalhada\": \"Implementar sistema de reserva online de livros com notificações por email\",\n  \"anonimo\": false\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/sugestoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["sugestoes", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Deletar Sugestão",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/sugestoes/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["sugestoes", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teste",
+      "item": [
+        {
+          "name": "Teste de Conectividade",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/teste",
+              "host": ["{{baseUrl}}"],
+              "path": ["teste"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Seeded Admins",
+      "item": [
+        {
+          "name": "Autenticar Chile (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('tokenChile', responseJson.token);",
+                  "    pm.collectionVariables.set('refreshTokenChile', responseJson.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"chile@docente.senai.br\",\n  \"senha\": \"{{adminPasswordChile}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/autenticar",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "autenticar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Autenticar Vieira (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('tokenVieira', responseJson.token);",
+                  "    pm.collectionVariables.set('refreshTokenVieira', responseJson.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"vieira@docente.senai.br\",\n  \"senha\": \"{{adminPasswordVieira}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/autenticar",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "autenticar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Autenticar Pino (ADMIN)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const responseJson = pm.response.json();",
+                  "    pm.collectionVariables.set('tokenPino', responseJson.token);",
+                  "    pm.collectionVariables.set('refreshTokenPino', responseJson.refreshToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"emailEducacional\": \"pino@docente.senai.br\",\n  \"senha\": \"{{adminPasswordPino}}\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/login/autenticar",
+              "host": ["{{baseUrl}}"],
+              "path": ["login", "autenticar"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
