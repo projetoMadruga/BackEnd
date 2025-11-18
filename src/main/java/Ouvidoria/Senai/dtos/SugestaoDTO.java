@@ -9,6 +9,7 @@ public class SugestaoDTO {
     private String local;
     private String descricaoDetalhada;
     private String caminhoAnexo;
+    private String area;
 
     public SugestaoDTO() {
 
@@ -22,6 +23,7 @@ public class SugestaoDTO {
         this.local = local;
         this.descricaoDetalhada = descricaoDetalhada;
         this.caminhoAnexo = caminhoAnexo;
+        this.area = null;
     }
 
 
@@ -33,7 +35,7 @@ public class SugestaoDTO {
         this.local = sugestao.getLocal();
         this.descricaoDetalhada = sugestao.getDescricaoDetalhada();
         this.caminhoAnexo = sugestao.getCaminhoAnexo();
-
+        this.area = sugestao.getArea() != null ? sugestao.getArea().toString() : null;
     }
 
     public Long getId() {
@@ -75,5 +77,13 @@ public class SugestaoDTO {
 
     public void setCaminhoAnexo(String caminhoAnexo) {
         this.caminhoAnexo = caminhoAnexo;
+    }
+
+    public String getArea() {
+        return area;
+    }
+
+    public void setArea(String area) {
+        this.area = area;
     }
 }

@@ -3,6 +3,8 @@ package Ouvidoria.Senai.controllers;
 import Ouvidoria.Senai.dtos.DenunciaDTO;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.services.DenunciaService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +17,8 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class DenunciaController {
 
+	private static final Logger logger = LoggerFactory.getLogger(DenunciaController.class);
+
 	@Autowired
 	private DenunciaService denunciaService;
 
@@ -22,6 +26,15 @@ public class DenunciaController {
 	@PostMapping
 	public ResponseEntity<DenunciaDTO> criarDenuncia(@RequestBody DenunciaDTO dto) {
 		try {
+			// DEBUG: Log no controller ANTES de validar
+			logger.warn("\n╔════════════════════════════════════════╗");
+			logger.warn("║  DENUNCIA CONTROLLER - RECEBIDO        ║");
+			logger.warn("╚════════════════════════════════════════╝");
+			logger.warn("DTO.area = [" + dto.getArea() + "]");
+			logger.warn("DTO.local = [" + dto.getLocal() + "]");
+			logger.warn("DTO.toString(): " + dto.toString());
+			logger.warn("╚════════════════════════════════════════╝\n");
+			
 			// Validação dos campos obrigatórios
 			if (dto.getLocal() == null || dto.getLocal().trim().isEmpty()) {
 				return ResponseEntity.badRequest().body(new DenunciaDTO(null, null, null, "O assunto não pode estar em branco.", null, null));

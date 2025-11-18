@@ -43,6 +43,7 @@ public class SecurityConfig {
                             mvcMatcherBuilder.pattern("/elogios/**"),
                             mvcMatcherBuilder.pattern("/reclamacoes/**"),
                             mvcMatcherBuilder.pattern("/sugestoes/**"),
+                            mvcMatcherBuilder.pattern("/manifestacoes/**"),
                             mvcMatcherBuilder.pattern("/redefinir-senha**"),
                             mvcMatcherBuilder.pattern("/api/password/**")
                         ) // Ignora CSRF para login, manifestações e página de redefinição de senha
@@ -125,6 +126,7 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:3000", 
             "http://localhost:8080",
+            "http://localhost:8081",
             "https://ouvidoria-senai-e9brd8b7gbg2a3f6.brazilsouth-01.azurewebsites.net",
             "https://ouvidoria-senai.vercel.app",
             "https://ouvidoria-senai-782uk18e0-luis-cantieris-projects.vercel.app"

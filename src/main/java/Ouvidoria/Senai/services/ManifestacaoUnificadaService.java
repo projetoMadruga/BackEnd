@@ -2,10 +2,12 @@ package Ouvidoria.Senai.services;
 
 import Ouvidoria.Senai.dtos.ManifestacaoUnificadaDTO;
 import Ouvidoria.Senai.entities.*;
+import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -14,6 +16,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class ManifestacaoUnificadaService {
+
+    private static final Logger logger = LoggerFactory.getLogger(ManifestacaoUnificadaService.class);
 
     @Autowired
     private ReclamacaoRepository reclamacaoRepository;
@@ -284,7 +288,10 @@ public class ManifestacaoUnificadaService {
                 reclamacaoRepository.save(reclamacao);
                 return new ManifestacaoUnificadaDTO(reclamacao);
             }
+        } catch (SecurityException e) {
+            throw e; // Re-lança exceções de segurança
         } catch (Exception e) {
+            logger.error("Erro ao atualizar reclamação ID " + id + ": " + e.getMessage(), e);
             // Continua tentando outros tipos
         }
 
@@ -357,7 +364,7 @@ public class ManifestacaoUnificadaService {
             // Continua tentando outros tipos
         }
 
-        throw new RuntimeException("Manifestação não encontrada");
+        throw new ResourceNotFoundException("Manifestação com ID " + id + " não encontrada em nenhuma tabela (reclamação, denúncia, elogio ou sugestão)");
     }
 
     /**

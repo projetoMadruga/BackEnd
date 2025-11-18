@@ -10,6 +10,7 @@ public class ElogioDTO {
 	private String emailUsuario; // Para o frontend saber quem criou
 	private String local;
 	private String dataHora;
+	private String area;
 
 	public ElogioDTO() {
 	}
@@ -21,6 +22,7 @@ public class ElogioDTO {
 		this.emailUsuario = emailUsuario;
 		this.local = local;
 		this.dataHora = dataHora;
+		this.area = null;
 	}
 
 	// O construtor que faltava: mapeia a ENTIDADE para o DTO.
@@ -30,6 +32,7 @@ public class ElogioDTO {
 		this.caminhoAnexo = entity.getCaminhoAnexo();
 		this.local = entity.getLocal();
 		this.dataHora = entity.getDataHora();
+		this.area = entity.getArea() != null ? entity.getArea().toString() : null;
 		if (entity.getUsuario() != null) {
 			this.emailUsuario = entity.getUsuario().getEmailEducacional();
 		}
@@ -56,4 +59,6 @@ public class ElogioDTO {
 	public void setCaminhoAnexo(String caminhoAnexo) { this.caminhoAnexo = caminhoAnexo; }
 	public String getEmailUsuario() { return emailUsuario; }
 	public void setEmailUsuario(String emailUsuario) { this.emailUsuario = emailUsuario; }
+	public String getArea() { return area; }
+	public void setArea(String area) { this.area = area; }
 }

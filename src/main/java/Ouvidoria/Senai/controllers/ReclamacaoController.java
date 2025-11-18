@@ -6,6 +6,8 @@ import Ouvidoria.Senai.entities.TipoReclamacao;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.services.ReclamacaoService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +22,19 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ReclamacaoController {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReclamacaoController.class);
+
     @Autowired
     private ReclamacaoService reclamacaoService; // 3. Injeção corrigida
 
     @PostMapping
     public ResponseEntity<ReclamacaoDTO> criarReclamacao(@RequestBody @Valid ReclamacaoDTO reclamacaoDTO) {
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║  RECLAMACAO CONTROLLER - RECEBIDO      ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("DTO.area = [" + reclamacaoDTO.getArea() + "]");
+        logger.warn("DTO.toString(): " + reclamacaoDTO.toString());
+        logger.warn("╚════════════════════════════════════════╝");
         ReclamacaoDTO resposta = reclamacaoService.salvarReclamacao(reclamacaoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }

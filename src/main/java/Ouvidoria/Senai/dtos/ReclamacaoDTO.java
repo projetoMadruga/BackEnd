@@ -16,12 +16,13 @@ public class ReclamacaoDTO {
     private StatusReclamacao status;
     private String observacao;
     private TipoReclamacao tipoReclamacao;
+    private String area;
 
     public ReclamacaoDTO() {
 
     }
 
-    public ReclamacaoDTO(Long id, String dataHora, String usuario, String local, String descricaoDetalhada, String caminhoAnexo, StatusReclamacao status, String observacao, TipoReclamacao tipoReclamacao) {
+    public ReclamacaoDTO(Long id, String dataHora, String usuario, String local, String descricaoDetalhada, String caminhoAnexo, StatusReclamacao status, String observacao, TipoReclamacao tipoReclamacao, String area) {
         this.id = id;
         this.dataHora = dataHora;
         Usuario = usuario;
@@ -31,6 +32,7 @@ public class ReclamacaoDTO {
         this.status = status;
         this.observacao = observacao;
         this.tipoReclamacao = tipoReclamacao;
+        this.area = area;
     }
 
     public ReclamacaoDTO(Reclamacao reclamacao){
@@ -43,6 +45,7 @@ public class ReclamacaoDTO {
         this.status = reclamacao.getStatus();
         this.observacao = reclamacao.getObservacao();
         this.tipoReclamacao = reclamacao.getTipoReclamacao();
+        this.area = reclamacao.getArea() != null ? reclamacao.getArea().toString() : null;
     }
 
     public Long getId() {
@@ -115,5 +118,13 @@ public class ReclamacaoDTO {
     
     public void setTipoReclamacao(TipoReclamacao tipoReclamacao) {
         this.tipoReclamacao = tipoReclamacao;
+    }
+    
+    public String getArea() {
+        return area;
+    }
+    
+    public void setArea(String area) {
+        this.area = area;
     }
 }

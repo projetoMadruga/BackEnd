@@ -9,6 +9,7 @@ public class DenunciaDTO {
 	private String dataHora;
 	private String descricaoDetalhada;
 	private String caminhoAnexo;
+	private String area;
 
 	// Campo opcional para o frontend saber quem criou a denúncia
 	private String emailUsuario;
@@ -23,6 +24,7 @@ public class DenunciaDTO {
 		this.descricaoDetalhada = descricaoDetalhada;
 		this.caminhoAnexo = caminhoAnexo;
 		this.emailUsuario = emailUsuario;
+		this.area = null;
 	}
 
 	// O construtor que mapeia a ENTIDADE para o DTO.
@@ -33,6 +35,7 @@ public class DenunciaDTO {
 		this.caminhoAnexo = entity.getCaminhoAnexo();
 		this.local = entity.getLocal();
 		this.dataHora = entity.getDataHora();
+		this.area = entity.getArea() != null ? entity.getArea().toString() : null;
 		if (entity.getUsuario() != null) {
 			this.emailUsuario = entity.getUsuario().getEmailEducacional();
 		}
@@ -66,4 +69,6 @@ public class DenunciaDTO {
 	public void setCaminhoAnexo(String caminhoAnexo) { this.caminhoAnexo = caminhoAnexo; }
 	public String getEmailUsuario() { return emailUsuario; }
 	public void setEmailUsuario(String emailUsuario) { this.emailUsuario = emailUsuario; }
+	public String getArea() { return area; }
+	public void setArea(String area) { this.area = area; }
 }

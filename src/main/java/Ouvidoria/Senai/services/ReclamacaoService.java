@@ -5,8 +5,11 @@ import Ouvidoria.Senai.entities.Reclamacao;
 import Ouvidoria.Senai.entities.Login;
 import Ouvidoria.Senai.entities.StatusReclamacao;
 import Ouvidoria.Senai.entities.TipoReclamacao;
+import Ouvidoria.Senai.entities.Area;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.ReclamacaoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -17,11 +20,23 @@ import java.util.stream.Collectors;
 @Service
 public class ReclamacaoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(ReclamacaoService.class);
+
     @Autowired
     private ReclamacaoRepository reclamacaoRepository;
 
     public ReclamacaoDTO salvarReclamacao(ReclamacaoDTO dto) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // DEBUG LOGS - MUITO VISÍVEIS
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║  RECLAMACAO SERVICE INICIADO - RECEBIDO║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("DTO.area RECEBIDO = [" + dto.getArea() + "]");
+        logger.warn("DTO.area == null? " + (dto.getArea() == null));
+        logger.warn("DTO.area.isBlank()? " + (dto.getArea() != null ? dto.getArea().isBlank() : "N/A"));
+        logger.warn("DTO.toString(): " + dto.toString());
+        logger.warn("╚════════════════════════════════════════╝");
 
         Reclamacao reclamacao = new Reclamacao();
         reclamacao.setDataHora(dto.getDataHora());
@@ -30,8 +45,49 @@ public class ReclamacaoService {
         reclamacao.setUsuario(usuarioLogado);
         reclamacao.setStatus(StatusReclamacao.PENDENTE); // Status inicial é sempre pendente
         reclamacao.setTipoReclamacao(dto.getTipoReclamacao()); // Define o tipo de reclamação
+        
+        // Prioriza a área enviada pelo front-end (string vinda do DTO)
+        String areaStr = dto.getArea();
+        if (areaStr != null && !areaStr.isBlank()) {
+            try {
+                Area areaEnum = Area.valueOf(areaStr);
+                System.out.println("✓ Área convertida com sucesso: " + areaEnum);
+                reclamacao.setArea(areaEnum);
+            } catch (IllegalArgumentException ex) {
+                // Log do erro para debug
+                System.err.println("✗ Erro ao converter área: " + areaStr + " - " + ex.getMessage());
+                System.err.println("✗ Aplicando fallback baseado em tipoReclamacao");
+                // Fallback: Define a área baseada no tipo de reclamação
+                if (dto.getTipoReclamacao() == TipoReclamacao.MANUTENCAO) {
+                    reclamacao.setArea(Area.MECANICA);
+                } else {
+                    reclamacao.setArea(Area.FACULDADE_SENAI);
+                }
+            }
+        } else {
+            // Se não recebeu área do front, tenta usar o tipo de reclamação
+            // MANUTENCAO = Informática ou Mecânica (vai para MECANICA por padrão)
+            // ADMINISTRACAO = Faculdade ou Geral (vai para FACULDADE_SENAI)
+            System.err.println("✗ AVISO: Área recebida como null/vazia em ReclamacaoService");
+            if (dto.getTipoReclamacao() == TipoReclamacao.MANUTENCAO) {
+                reclamacao.setArea(Area.MECANICA);
+            } else {
+                reclamacao.setArea(Area.FACULDADE_SENAI);
+            }
+        }
 
         reclamacao = reclamacaoRepository.save(reclamacao);
+        
+        // DEBUG: Verifica o que foi salvo
+        System.out.println("\n\n");
+        System.out.println("╔════════════════════════════════════════╗");
+        System.out.println("║   RECLAMACAO SALVA NO BANCO - DEBUG    ║");
+        System.out.println("╚════════════════════════════════════════╝");
+        System.out.println("Reclamacao.area após salvar = [" + reclamacao.getArea() + "]");
+        System.out.println("Reclamacao.id = [" + reclamacao.getId() + "]");
+        System.out.println("╚════════════════════════════════════════╝");
+        System.out.println("\n\n");
+        
         return new ReclamacaoDTO(reclamacao);
     }
 

@@ -4,6 +4,8 @@ import Ouvidoria.Senai.dtos.SugestaoDTO;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.services.SugestaoService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,11 +18,19 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class SugestaoController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SugestaoController.class);
+
     @Autowired
     private SugestaoService sugestaoService;
 
     @PostMapping
     public ResponseEntity<SugestaoDTO> criarSugestao(@RequestBody @Valid SugestaoDTO sugestaoDTO) {
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║  SUGESTAO CONTROLLER - RECEBIDO        ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("DTO.area = [" + sugestaoDTO.getArea() + "]");
+        logger.warn("DTO.toString(): " + sugestaoDTO.toString());
+        logger.warn("╚════════════════════════════════════════╝");
         SugestaoDTO resposta = sugestaoService.salvarSugestao(sugestaoDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }

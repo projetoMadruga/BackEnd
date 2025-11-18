@@ -35,7 +35,7 @@ public class DataInitializer implements CommandLineRunner {
             String senhaCodificada = passwordEncoder.encode(admin.getSenha());
             
             // Verifica se o usuário já existe
-            Login usuarioExistente = loginRepository.findByEmailEducacional(admin.getEmailEducacional());
+            Login usuarioExistente = loginRepository.findFirstByEmailEducacional(admin.getEmailEducacional());
             
             if (usuarioExistente != null) {
                 // Atualiza a senha se for diferente

@@ -4,5 +4,6 @@ public enum Area {
     ADS_REDES,
     MANUFATURA_DIGITAL,
     MECANICA,
-    FACULDADE_SENAI
+    FACULDADE_SENAI,
+    GERAL
 }

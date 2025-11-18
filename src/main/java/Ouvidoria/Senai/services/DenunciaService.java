@@ -3,11 +3,14 @@ package Ouvidoria.Senai.services;
 import Ouvidoria.Senai.dtos.DenunciaDTO;
 import Ouvidoria.Senai.entities.Denuncia;
 import Ouvidoria.Senai.entities.Login;
+import Ouvidoria.Senai.entities.Area;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.DenunciaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +19,28 @@ import java.util.stream.Collectors;
 @Service
 public class DenunciaService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DenunciaService.class);
+
     @Autowired
     private DenunciaRepository denunciaRepository;
 
     public DenunciaDTO salvarDenuncia(DenunciaDTO dto) {
         // Pega o usuário logado do contexto de segurança
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        // DEBUG LOGS - MUITO VISÍVEIS
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║  DENUNCIA SERVICE INICIADO - RECEBIDO  ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("DTO.area RECEBIDO = [" + dto.getArea() + "]");
+        logger.warn("DTO.area == null? " + (dto.getArea() == null));
+        logger.warn("DTO.area.isBlank()? " + (dto.getArea() != null ? dto.getArea().isBlank() : "N/A"));
+        logger.warn("DTO.toString(): " + dto.toString());
+        logger.warn("╚════════════════════════════════════════╝");
+
+        // Loga o conteúdo recebido no DTO, incluindo a área
+        logger.info("SalvarDenuncia - DTO recebido: local={}, dataHora={}, area={}", 
+                dto.getLocal(), dto.getDataHora(), dto.getArea());
 
         // Cria a entidade Denuncia
         Denuncia denuncia = new Denuncia();
@@ -30,8 +49,46 @@ public class DenunciaService {
         denuncia.setDescricaoDetalhada(dto.getDescricaoDetalhada());
         denuncia.setUsuario(usuarioLogado); // Associa a denúncia ao usuário logado
 
+        // Converte a String enviada pelo front-end para o enum Area, com fallback
+        String areaStr = dto.getArea();
+        logger.warn(">>> INICIANDO CONVERSÃO DE AREA <<<");
+        logger.warn("areaStr = [" + areaStr + "]");
+        logger.warn("areaStr == null? " + (areaStr == null));
+        logger.warn("areaStr.isBlank()? " + (areaStr != null ? areaStr.isBlank() : "N/A"));
+        
+        if (areaStr != null && !areaStr.isBlank()) {
+            try {
+                logger.warn(">>> TENTANDO CONVERTER: " + areaStr);
+                Area areaEnum = Area.valueOf(areaStr);
+                denuncia.setArea(areaEnum);
+                logger.info("SalvarDenuncia - Área convertida para enum com sucesso: {}", areaStr);
+                logger.warn("✓✓✓ SUCESSO! Área convertida: " + areaEnum);
+            } catch (IllegalArgumentException ex) {
+                logger.error("SalvarDenuncia - Erro ao converter área: {} - {}", areaStr, ex.getMessage());
+                logger.error("✗✗✗ ERRO ao converter área em DenunciaService: " + areaStr);
+                logger.error("✗✗✗ Mensagem: " + ex.getMessage());
+                logger.error("✗✗✗ Aplicando fallback FACULDADE_SENAI");
+                denuncia.setArea(Area.FACULDADE_SENAI);
+            }
+        } else {
+            logger.info("SalvarDenuncia - Área no DTO é nula ou vazia, aplicando fallback FACULDADE_SENAI");
+            logger.error("✗✗✗ AVISO: Área recebida como null/vazia em DenunciaService");
+            logger.error("✗✗✗ DTO.toString(): " + dto.toString());
+            logger.error("✗✗✗ Aplicando fallback FACULDADE_SENAI");
+            denuncia.setArea(Area.FACULDADE_SENAI);
+        }
+        logger.warn(">>> FIM DA CONVERSÃO - Area final: " + denuncia.getArea());
+
         // Salva no banco
         Denuncia denunciaSalva = denunciaRepository.save(denuncia);
+
+        // DEBUG: Verifica o que foi salvo
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║   DENUNCIA SALVA NO BANCO - DEBUG      ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("Denuncia.area após salvar = [" + denunciaSalva.getArea() + "]");
+        logger.warn("Denuncia.id = [" + denunciaSalva.getId() + "]");
+        logger.warn("╚════════════════════════════════════════╝");
 
         // Retorna um DTO preenchido com os dados da denúncia salva (incluindo o ID)
         return new DenunciaDTO(denunciaSalva);

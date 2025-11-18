@@ -3,8 +3,11 @@ package Ouvidoria.Senai.services;
 import Ouvidoria.Senai.dtos.SugestaoDTO;
 import Ouvidoria.Senai.entities.Login;
 import Ouvidoria.Senai.entities.Sugestao;
+import Ouvidoria.Senai.entities.Area;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.repositories.SugestaoRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -15,6 +18,8 @@ import java.util.stream.Collectors;
 @Service
 public class SugestaoService {
 
+    private static final Logger logger = LoggerFactory.getLogger(SugestaoService.class);
+
     @Autowired
     private SugestaoRepository sugestaoRepository;
 
@@ -22,19 +27,53 @@ public class SugestaoService {
         // Pega o usuário autenticado a partir do contexto de segurança
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║  SUGESTAO SERVICE INICIADO - RECEBIDO  ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("DTO.area = [" + dto.getArea() + "]");
+        logger.warn("DTO.area == null? " + (dto.getArea() == null));
+        logger.warn("DTO.area.isBlank()? " + (dto.getArea() != null ? dto.getArea().isBlank() : "N/A"));
+        logger.warn("╚════════════════════════════════════════╝");
+
         Sugestao sugestao = new Sugestao();
         sugestao.setDataHora(dto.getDataHora());
         sugestao.setLocal(dto.getLocal());
         sugestao.setDescricaoDetalhada(dto.getDescricaoDetalhada());
         sugestao.setUsuario(usuarioLogado); // Associa o usuário logado
+        
+        // Converte a String de área enviada pelo front-end para o enum Area, com fallback
+        String areaStr = dto.getArea();
+        if (areaStr != null && !areaStr.isBlank()) {
+            try {
+                Area areaEnum = Area.valueOf(areaStr);
+                logger.warn("✓✓✓ SUCESSO! Área convertida: " + areaEnum);
+                sugestao.setArea(areaEnum);
+            } catch (IllegalArgumentException ex) {
+                logger.error("✗✗✗ ERRO ao converter área em SugestaoService: " + areaStr + " - " + ex.getMessage());
+                logger.error("✗✗✗ Aplicando fallback FACULDADE_SENAI");
+                sugestao.setArea(Area.FACULDADE_SENAI);
+            }
+        } else {
+            logger.error("✗✗✗ AVISO: Área recebida como null/vazia em SugestaoService");
+            sugestao.setArea(Area.FACULDADE_SENAI);
+        }
 
-        sugestao = sugestaoRepository.save(sugestao);
-        return new SugestaoDTO(sugestao);
+        Sugestao sugestaoSalva = sugestaoRepository.save(sugestao);
+        
+        // DEBUG: Verifica o que foi salvo
+        logger.warn("╔════════════════════════════════════════╗");
+        logger.warn("║   SUGESTAO SALVA NO BANCO - DEBUG      ║");
+        logger.warn("╚════════════════════════════════════════╝");
+        logger.warn("Sugestao.area após salvar = [" + sugestaoSalva.getArea() + "]");
+        logger.warn("Sugestao.id = [" + sugestaoSalva.getId() + "]");
+        logger.warn("╚════════════════════════════════════════╝");
+        
+        return new SugestaoDTO(sugestaoSalva); // Retorna um DTO preenchido
     }
 
     public SugestaoDTO buscarPorId(Long id) {
         Login usuarioLogado = (Login) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
+
         // Usa a consulta otimizada com JOIN FETCH
         Sugestao sugestao = sugestaoRepository.findByIdWithUsuario(id);
         if (sugestao == null) {

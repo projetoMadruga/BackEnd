@@ -3,6 +3,8 @@ package Ouvidoria.Senai.controllers;
 import Ouvidoria.Senai.dtos.ElogioDTO;
 import Ouvidoria.Senai.exceptions.ResourceNotFoundException;
 import Ouvidoria.Senai.services.ElogioService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,11 +17,19 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class ElogioController {
 
+	private static final Logger logger = LoggerFactory.getLogger(ElogioController.class);
+
 	@Autowired
 	private ElogioService elogioService;
 
 	@PostMapping
 	public ResponseEntity<ElogioDTO> criarElogio(@RequestBody ElogioDTO dto) {
+		logger.warn("╔════════════════════════════════════════╗");
+		logger.warn("║  ELOGIO CONTROLLER - RECEBIDO          ║");
+		logger.warn("╚════════════════════════════════════════╝");
+		logger.warn("DTO.area = [" + dto.getArea() + "]");
+		logger.warn("DTO.toString(): " + dto.toString());
+		logger.warn("╚════════════════════════════════════════╝");
 		ElogioDTO resposta = elogioService.salvarElogio(dto);
 		return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
 	}
